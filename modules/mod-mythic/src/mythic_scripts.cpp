@@ -73,8 +73,12 @@ public:
         if (!creature || !creature->GetMap())
             return;
 
-        if (!creature->GetMap()->IsDungeon() && !creature->GetMap()->IsBattleground())
+        if (!creature->GetMap()->IsDungeon())
             return;
+
+        if (!creature->GetMap()->IsBattleground())
+            return;
+
 
         if (((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer()))
         {
@@ -135,6 +139,31 @@ public:
 
     uint32 _Modifer_DealDamage(Unit* target, Unit* attacker, uint32 damage, DamageEffectType damagetype)
     {
+
+        if (!attacker || !attacker->GetMap())
+            return damage;
+
+        if (!attacker->GetMap()->IsDungeon())
+            return damage;
+
+        if (!attacker->GetMap()->IsBattleground())
+            return damage;
+
+
+        if (((attacker->IsHunterPet() || attacker->IsPet() || attacker->IsSummon()) && attacker->IsControlledByPlayer()))
+        {
+            return damage;
+        }
+
+        if (!attacker->IsAlive())
+            return damage;
+
+        if (attacker->IsInCombat())
+            return damage;
+
+        if (!attacker->ToCreature()->IsDungeonBoss())
+            return damage;
+
         if (!MythicManager::IsInMythic(attacker->GetMap()->GetInstanceId()))
             return damage;
 
@@ -182,6 +211,10 @@ public:
     }
 
     uint32 GetMythicInstanceId(Player* player) {
+
+        if (!player->GetGroup())
+            return 0;
+
         Group::MemberSlotList const& members = player->GetGroup()->GetMemberSlots();
         for (auto itr = members.begin(); itr != members.end(); ++itr) {
             Player* GroupMember = ObjectAccessor::FindPlayer(itr->guid);
