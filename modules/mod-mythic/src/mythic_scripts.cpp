@@ -76,9 +76,8 @@ public:
         if (!creature->GetMap()->IsDungeon())
             return;
 
-        if (!creature->GetMap()->IsBattleground())
+        if (creature->GetMap()->IsBattleground())
             return;
-
 
         if (((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer()))
         {
@@ -143,9 +142,8 @@ public:
         if (!attacker->GetMap()->IsDungeon())
             return damage;
 
-        if (!attacker->GetMap()->IsBattleground())
+        if (creature->GetMap()->IsBattleground())
             return damage;
-
 
         if (((attacker->IsHunterPet() || attacker->IsPet() || attacker->IsSummon()) && attacker->IsControlledByPlayer()))
         {
