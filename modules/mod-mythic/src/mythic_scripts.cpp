@@ -142,7 +142,7 @@ public:
         if (!attacker->GetMap()->IsDungeon())
             return damage;
 
-        if (creature->GetMap()->IsBattleground())
+        if (attacker->GetMap()->IsBattleground())
             return damage;
 
         if (((attacker->IsHunterPet() || attacker->IsPet() || attacker->IsSummon()) && attacker->IsControlledByPlayer()))
