@@ -79,15 +79,10 @@ public:
         if (creature->GetMap()->IsBattleground())
             return;
 
-        if (((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer()))
-        {
+        if ((creature->IsHunterPet() || creature->IsPet() || creature->IsSummon()) && creature->IsControlledByPlayer())
             return;
-        }
 
         if (!creature->IsAlive())
-            return;
-
-        if (creature->IsInCombat())
             return;
 
         if (!MythicManager::IsInMythic(creature->GetMap()->GetInstanceId()))
@@ -128,6 +123,52 @@ public:
     {
     }
 
+    uint32 DealDamage(Unit* AttackerUnit, Unit* playerVictim, uint32 damage, DamageEffectType /*damagetype*/) override
+    {
+        return _Modifer_DealDamage(playerVictim, AttackerUnit, damage);
+    }
+
+    void ModifyPeriodicDamageAurasTick(Unit* target, Unit* attacker, uint32& damage) override
+    {
+        damage = _Modifer_DealDamage(target, attacker, damage);
+    }
+
+    void ModifySpellDamageTaken(Unit* target, Unit* attacker, int32& damage) override
+    {
+        damage = _Modifer_DealDamage(target, attacker, damage);
+    }
+
+    void ModifyMeleeDamage(Unit* target, Unit* attacker, uint32& damage) override
+    {
+        damage = _Modifer_DealDamage(target, attacker, damage);
+    }
+
+    void ModifyHealRecieved(Unit* target, Unit* attacker, uint32& damage) override {
+        damage = _Modifer_DealDamage(target, attacker, damage);
+    }
+
+
+    uint32 _Modifer_DealDamage(Unit* target, Unit* attacker, uint32 damage)
+    {
+        if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
+            return damage;
+
+        float damageMultiplier = 1.5f; // default in mythic
+
+        Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
+
+        if (damageMultiplier == 1)
+            return damage;
+
+        if (modifier.meleeMultiplier)
+            damageMultiplier = modifier.meleeMultiplier;
+
+        if ((attacker->IsHunterPet() || attacker->IsPet() || attacker->IsSummon()) && attacker->IsControlledByPlayer())
+            return damage;
+
+        return damage * damageMultiplier;
+    }
+
     uint32 DealDamage(Unit* AttackerUnit, Unit* playerVictim, uint32 damage, DamageEffectType damagetype) override
     {
         return _Modifer_DealDamage(playerVictim, AttackerUnit, damage, damagetype);
@@ -162,7 +203,6 @@ public:
         if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
             return damage;
 
-        float damageMultiplier = 1.3f; // default in mythic
 
         Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
 
