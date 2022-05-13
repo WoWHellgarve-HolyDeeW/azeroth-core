@@ -244,6 +244,10 @@ public:
     GS_Mythic() : GroupScript("GS_Mythic") { }
 
     void OnDisband(Group* group) {
+
+        if (!group)
+            return;
+
         Player* leader = group->GetLeader();
         uint32 instanceId = leader->GetMap()->GetInstanceId();
         auto itr = MythicManager::encounters.find(instanceId);
