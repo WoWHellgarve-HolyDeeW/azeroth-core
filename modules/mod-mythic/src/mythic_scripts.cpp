@@ -168,58 +168,6 @@ public:
 
         return damage * damageMultiplier;
     }
-
-    uint32 DealDamage(Unit* AttackerUnit, Unit* playerVictim, uint32 damage, DamageEffectType damagetype) override
-    {
-        return _Modifer_DealDamage(playerVictim, AttackerUnit, damage, damagetype);
-    }
-
-    uint32 _Modifer_DealDamage(Unit* target, Unit* attacker, uint32 damage, DamageEffectType damagetype)
-    {
-
-        if (!attacker || !attacker->GetMap())
-            return damage;
-
-        if (!attacker->GetMap()->IsDungeon())
-            return damage;
-
-        if (attacker->GetMap()->IsBattleground())
-            return damage;
-
-        if (((attacker->IsHunterPet() || attacker->IsPet() || attacker->IsSummon()) && attacker->IsControlledByPlayer()))
-        {
-            return damage;
-        }
-
-        if (!attacker->IsAlive())
-            return damage;
-
-        if (attacker->IsInCombat())
-            return damage;
-
-        if (!MythicManager::IsInMythic(attacker->GetMap()->GetInstanceId()))
-            return damage;
-
-        if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
-            return damage;
-
-
-        Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
-
-        if (modifier.meleeMultiplier && damagetype == DIRECT_DAMAGE) {
-            damageMultiplier = modifier.meleeMultiplier;
-        }
-
-        if (modifier.spellMultiplier && damagetype == SPELL_DIRECT_DAMAGE) {
-            damageMultiplier = modifier.spellMultiplier;
-        }
-
-        if (modifier.spellMultiplier && damagetype == DOT) {
-            damageMultiplier = modifier.spellMultiplier;
-        }
-
-        return damage * damageMultiplier;
-    }
 };
 
 
