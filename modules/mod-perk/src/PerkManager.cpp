@@ -186,7 +186,7 @@ void PerksManager::SetSelectPerk(Player* player, std::string UUID, uint32 spellI
 
 void PerksManager::OnChangeSpec(Player* player, uint8 specId)
 {
-    std::vector<PerksManager::CharacterPerk> characterFirstSpec = {};
+    /* std::vector<PerksManager::CharacterPerk> characterFirstSpec = {};
     std::vector<PerksManager::CharacterPerk> characterSecondSpec = {};
 
     if (PerksManager::CharacterPerks.find(player->GetGUID().GetCounter()) == PerksManager::CharacterPerks.end())
@@ -216,7 +216,7 @@ void PerksManager::OnChangeSpec(Player* player, uint8 specId)
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         auto uuidString = boost::lexical_cast<std::string>(uuid);
         PerksManager::InsertNewPerksForLevelUp(player, uuidString);
-    }
+    }*/
 }
 
 void PerksManager::OnCharDelete(ObjectGuid guid)
@@ -279,7 +279,7 @@ void PerksManager::ApplyPerkHeroClass(Player* player)
 
 void PerksManager::ResetCharacter(Player* player)
 {
-    if (!player)
+    /*/if (!player)
         return;
 
     if (PerksManager::CharacterPerks.find(player->GetGUID().GetCounter()) == PerksManager::CharacterPerks.end())
@@ -319,7 +319,7 @@ void PerksManager::ResetCharacter(Player* player)
     player->TeleportTo(info->mapId, info->positionX, info->positionY, info->positionZ, info->orientation);
     player->resetSpells();
     player->ClearQuestStatus();
-    CharacterPerks[player->GetGUID().GetCounter()].clear();
+    CharacterPerks[player->GetGUID().GetCounter()].clear(); */
 }
 
 

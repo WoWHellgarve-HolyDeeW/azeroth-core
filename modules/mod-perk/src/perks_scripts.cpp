@@ -20,7 +20,7 @@ public:
 
     void OnLogin(Player* player)
     {
-        // PerksManager::ApplyAuraPerk(player);
+        PerksManager::ApplyAuraPerk(player);
     }
 
     void OnDelete(ObjectGuid guid, uint32 accountId)

@@ -323,5 +323,5 @@ private:
 
 void AddSC_LearnAllSpells()
 {
-    new LearnSpellsOnLevelUp();
+    // new LearnSpellsOnLevelUp();
 }
