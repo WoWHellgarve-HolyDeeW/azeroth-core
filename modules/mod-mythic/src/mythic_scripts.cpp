@@ -91,9 +91,6 @@ public:
         if (creature->IsInCombat())
             return;
 
-        if (!creature->IsDungeonBoss())
-            return;
-
         if (!MythicManager::IsInMythic(creature->GetMap()->GetInstanceId()))
             return;
 
@@ -159,9 +156,6 @@ public:
             return damage;
 
         if (attacker->IsInCombat())
-            return damage;
-
-        if (!attacker->ToCreature()->IsDungeonBoss())
             return damage;
 
         if (!MythicManager::IsInMythic(attacker->GetMap()->GetInstanceId()))
