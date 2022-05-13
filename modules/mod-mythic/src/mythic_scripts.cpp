@@ -249,6 +249,10 @@ public:
             return;
 
         Player* leader = group->GetLeader();
+
+        if (!leader)
+            return;
+
         uint32 instanceId = leader->GetMap()->GetInstanceId();
         auto itr = MythicManager::encounters.find(instanceId);
         if (itr != MythicManager::encounters.end()) {
