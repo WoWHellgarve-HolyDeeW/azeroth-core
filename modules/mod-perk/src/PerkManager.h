@@ -65,6 +65,7 @@ public:
     static void ResetCharacter(Player* player);
     static void SavePollPerks(Player* player);
     static bool isPrestigeActive(Player* player);
+    static bool FoundSimilar(Player* player, std::string uuid, uint32 spellId);
     static uint32 GetPrestigeLevel(Player* player);
     static void LevelUpPrestige(Player* player);
     static void ResetCharacterEquipment(Player* player);

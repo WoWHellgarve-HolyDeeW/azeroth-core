@@ -18,7 +18,7 @@ void RandomEnchant::ApplyRandomEnchant(Item* item, uint32 enchantId, Player* pla
 
 uint32 RandomEnchant::GetItemEnchantSpellId(Player* player, uint32 bag, uint32 slotId)
 {
-   if(Item* pItem = GetItemByPosition(player, bag, slotId)) {
+   if (Item* pItem = GetItemByPosition(player, bag, slotId)) {
         uint32 enchantId = pItem->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
 
         if (!enchantId)

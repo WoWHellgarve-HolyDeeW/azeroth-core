@@ -147,7 +147,6 @@ public:
         damage = _Modifer_DealDamage(target, attacker, damage);
     }
 
-
     uint32 _Modifer_DealDamage(Unit* target, Unit* attacker, uint32 damage)
     {
         if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
@@ -156,9 +155,6 @@ public:
         float damageMultiplier = 1.5f; // default in mythic
 
         Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
-
-        if (damageMultiplier == 1)
-            return damage;
 
         if (modifier.meleeMultiplier)
             damageMultiplier = modifier.meleeMultiplier;
@@ -318,15 +314,6 @@ public:
             MythicManager::PreloadAllRequierements();
             MythicManager::LoadConfig();
         }
-    }
-
-    void OnStartup() override
-    {
-        MythicManager::PreloadAllCompletions();
-        MythicManager::PreloadAllCreaturesIds();
-        MythicManager::PreloadAllLoot();
-        MythicManager::PreloadAllRequierements();
-        MythicManager::LoadConfig();
     }
 };
 

@@ -13,12 +13,6 @@ public:
 
     RandomEnchantsPlayer() : PlayerScript("RandomEnchantsPlayer") { }
 
-    void OnLootItem(Player* player, Item* item, uint32 /*count*/, ObjectGuid /*lootguid*/) override
-    {
-        uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item);
-        if (enchantId != 0)
-            RandomEnchant::ApplyRandomEnchant(item, enchantId, player);
-    }
     void OnCreateItem(Player* player, Item* item, uint32 /*count*/) override
     {
         uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item);
@@ -26,12 +20,7 @@ public:
             RandomEnchant::ApplyRandomEnchant(item, enchantId, player);
 
     }
-    void OnQuestRewardItem(Player* player, Item* item, uint32 /*count*/) override
-    {
-        uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item);
-        if (enchantId != 0)
-            RandomEnchant::ApplyRandomEnchant(item, enchantId, player);
-    }
+   
 };
 
 
@@ -41,11 +30,6 @@ public:
     WS_RE() : WorldScript("WS_RE") { }
 
     void OnAfterConfigLoad(bool reload) override
-    {
-        RandomEnchant::PreloadAllEnchants();
-    }
-
-    void OnStartup() override
     {
         RandomEnchant::PreloadAllEnchants();
     }

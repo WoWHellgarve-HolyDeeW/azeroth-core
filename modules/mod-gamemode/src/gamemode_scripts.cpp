@@ -17,11 +17,6 @@ public:
     {
         Gamemode::PreloadAllModesPlayers();
     }
-
-    void OnStartup() override
-    {
-        Gamemode::PreloadAllModesPlayers();
-    }
 };
 
 class PS_Gamemode : public PlayerScript

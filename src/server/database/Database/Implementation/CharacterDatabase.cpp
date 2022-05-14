@@ -514,6 +514,7 @@ void CharacterDatabaseConnection::DoPrepareStatements()
     PrepareStatement(CHAR_DEL_CHAR_SKILL_BY_SKILL, "DELETE FROM character_skills WHERE guid = ? AND skill = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_PERK, "INSERT INTO character_bonuses (uuid, guid, spellId, inQueue, category, type, specId, chosen, isDefault) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_UPD_CHARACTER_PERK_QUEUE, "UPDATE character_bonuses SET inQueue = 0 WHERE uuid = ? AND spellId != ?", CONNECTION_ASYNC);
+    PrepareStatement(CHAR_INS_CHAR_PERK_POLL, "INSERT INTO character_active_poll_perks(guid, spellId, specId, isChosen) VALUES(? , ? , ? , ? )", CONNECTION_ASYNC);
     PrepareStatement(CHAR_UPD_CHARACTER_PERK, "UPDATE character_bonuses SET inQueue = 0, chosen = 1 WHERE uuid = ? AND spellId = ?", CONNECTION_ASYNC);
     PrepareStatement(CHAR_INS_CHAR_SKILLS, "INSERT INTO character_skills (guid, skill, value, max) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(CHAR_UDP_CHAR_SKILLS, "UPDATE character_skills SET value = ?, max = ? WHERE guid = ? AND skill = ?", CONNECTION_ASYNC);

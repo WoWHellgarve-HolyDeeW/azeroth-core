@@ -45,13 +45,6 @@ public:
         PerksManager::PreloadAllPrestige();
     }
 
-    void OnStartup() override
-    {
-        PerksManager::PreloadAllCharacterPerks();
-        PerksManager::PreloadAllPerks();
-        PerksManager::PreloadAllPoll();
-        PerksManager::PreloadAllPrestige();
-    }
 };
 
 // Add all scripts in one

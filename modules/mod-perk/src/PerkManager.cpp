@@ -86,12 +86,12 @@ void PerksManager::PreloadAllCharacterPerks()
             std::string uuid = fields[0].Get<std::string>();
             uint64 guid = fields[1].Get<uint64>();
             uint32 spellId = fields[2].Get<uint32>();
-            bool inQueue = fields[3].Get<int>() == 0 ? false : true;
+            bool inQueue = fields[3].Get<bool>();
             uint8 category = fields[4].Get<uint8>();
-            bool isAura = fields[5].Get<int>() == 0 ? false : true;
+            bool isAura = fields[5].Get<bool>();
             uint32 specId = fields[6].Get<uint8>();
-            bool isChosen = fields[7].Get<int>() == 0 ? false : true;
-            bool isDefault = fields[8].Get<int>() == 0 ? false : true;
+            bool isChosen = fields[7].Get<bool>();
+            bool isDefault = fields[8].Get<bool>();
             PerksManager::CharacterPerks[guid].push_back({uuid, spellId, inQueue, category, isAura, isChosen, specId, isDefault});
         } while (result->NextRow());
     }
@@ -109,7 +109,7 @@ void PerksManager::InsertNewPerksForLevelUp(Player* player, std::string uuid)
         if (totalPerks >= maxPerks)
             break;
 
-        if (!PerksManager::hasAlreadyPerkGroup(player, possiblePerk.spellId) && (!PerksManager::IsSpellInPoll(player, possiblePerk.spellId) || !possiblePerk.isUnique)
+        if (!PerksManager::hasAlreadyPerkGroup(player, possiblePerk.spellId) && ((!PerksManager::IsSpellInPoll(player, possiblePerk.spellId) || !possiblePerk.isUnique) && !FoundSimilar(player, uuid, possiblePerk.spellId))
             && (!player->HasSpell(possiblePerk.spellId) || possiblePerk.isUnique) && (((possiblePerk.allowableClass & player->getClassMask()) != 0) || possiblePerk.allowableClass == -1)) {
             PerksManager::InsertOnePerk(player, uuid, possiblePerk.spellId, possiblePerk.isAura, 0);
             totalPerks++;
@@ -127,6 +127,9 @@ void PerksManager::OnLevelUp(Player* player, uint8 oldLevel)
 {
     uint32 previousLevel = player->getLevel() - oldLevel;
     uint32 currentLevel = player->getLevel();
+    if (previousLevel > 80)
+        return;
+
     if (previousLevel > 1)
         for (size_t i = 0; i < previousLevel; i++)
         {
@@ -186,7 +189,7 @@ void PerksManager::SetSelectPerk(Player* player, std::string UUID, uint32 spellI
 
 void PerksManager::OnChangeSpec(Player* player, uint8 specId)
 {
-    /* std::vector<PerksManager::CharacterPerk> characterFirstSpec = {};
+    std::vector<PerksManager::CharacterPerk> characterFirstSpec = {};
     std::vector<PerksManager::CharacterPerk> characterSecondSpec = {};
 
     if (PerksManager::CharacterPerks.find(player->GetGUID().GetCounter()) == PerksManager::CharacterPerks.end())
@@ -209,14 +212,14 @@ void PerksManager::OnChangeSpec(Player* player, uint8 specId)
     ApplyAuraPerk(player);
 
     if (left > 0)
-        ChatHandler(player->GetSession()).PSendSysMessage("|cff8FCE00You have {} perk(s) left(s) on this specialization.", left);
+        ChatHandler(player->GetSession()).PSendSysMessage("|cff8FCE00You have %u perk(s) left(s) on this specialization.", left);
 
     for (size_t i = 0; i < left; i++)
     {
         boost::uuids::uuid uuid = boost::uuids::random_generator()();
         auto uuidString = boost::lexical_cast<std::string>(uuid);
         PerksManager::InsertNewPerksForLevelUp(player, uuidString);
-    }*/
+    }
 }
 
 void PerksManager::OnCharDelete(ObjectGuid guid)
@@ -249,7 +252,7 @@ void PerksManager::ApplyAuraPerk(Player* player)
                 uint32 auraCount = player->GetAuraCount(playerPerk.spellId);
                 if (auraCount < count)
                     for (size_t i = 0; i < count; i++)
-                        player->AddAura(playerPerk.spellId, player);
+                        player->AddAura(playerPerk.spellId, player) ;
             }
             if (!perk.isAura && !player->HasSpell(playerPerk.spellId))
                 player->learnSpell(playerPerk.spellId, player);
@@ -279,7 +282,7 @@ void PerksManager::ApplyPerkHeroClass(Player* player)
 
 void PerksManager::ResetCharacter(Player* player)
 {
-    /*/if (!player)
+    if (!player)
         return;
 
     if (PerksManager::CharacterPerks.find(player->GetGUID().GetCounter()) == PerksManager::CharacterPerks.end())
@@ -307,11 +310,9 @@ void PerksManager::ResetCharacter(Player* player)
         player->SetLevel(1);
 
     LevelUpPrestige(player);
-    ChatHandler(player->GetSession()).PSendSysMessage("Your character has been reset, you will be disconnected in 20 seconds to apply all changes. You are now prestige {}", GetPrestigeLevel(player));
     Gamemode::RemoveGamemode(player);
     ResetCharacterEquipment(player);
     player->resetTalents();
-    player->GetSession()->LogoutPlayer(true);
     player->ActivateSpec(0);
     player->SetPhaseMask(1, true);
     player->SetUInt32Value(PLAYER_XP, 0);
@@ -319,7 +320,8 @@ void PerksManager::ResetCharacter(Player* player)
     player->TeleportTo(info->mapId, info->positionX, info->positionY, info->positionZ, info->orientation);
     player->resetSpells();
     player->ClearQuestStatus();
-    CharacterPerks[player->GetGUID().GetCounter()].clear(); */
+    CharacterPerks[player->GetGUID().GetCounter()].clear();
+    ChatHandler(player->GetSession()).PSendSysMessage("Your character has been reset, you will be disconnected in 20 seconds to apply all changes. You are now prestige {}", GetPrestigeLevel(player));
 }
 
 
@@ -359,6 +361,21 @@ bool PerksManager::isPrestigeActive(Player* player)
         if (count > 0)
             return true;
     }
+
+    return false;
+}
+
+bool PerksManager::FoundSimilar(Player* player, std::string uuid, uint32 spellId)
+{
+
+    auto perk = std::find_if(
+        CharacterPerks[player->GetGUID().GetCounter()].begin(),
+        CharacterPerks[player->GetGUID().GetCounter()].end(),
+        [uuid, spellId](const PerksManager::CharacterPerk& perk)
+    { return perk.uuid == uuid &perk.spellId == spellId; });
+
+    if (perk != CharacterPerks[player->GetGUID().GetCounter()].end())
+        return true;
 
     return false;
 }
@@ -445,11 +462,12 @@ uint32 PerksManager::GetCountPerk(Player* player, uint32 spellId, uint8 specId)
     std::vector<PerksManager::CharacterPerk> lastestPerks = {};
 
     for (auto perk : PerksManager::CharacterPerks[player->GetGUID().GetCounter()]) {
-        if (perk.specId == specId && perk.spellId == spellId && perk.isChosen)
-            lastestPerks.push_back(perk);
+        if (perk.specId == specId && perk.spellId == spellId && perk.isChosen) {
+            count++;
+        }
     }
 
-    return lastestPerks.size();
+    return count;
 }
 
 void PerksManager::InsertOnePerk(Player* player, std::string uuid, uint32 spellId, bool isAura, uint8 isDefault)
