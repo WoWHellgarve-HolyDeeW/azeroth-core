@@ -12165,7 +12165,7 @@ OutdoorPvP* Player::GetOutdoorPvP() const
 
 bool Player::HasItemFitToSpellRequirements(SpellInfo const* spellInfo, Item const* ignoreItem) const
 {
-    if (spellInfo->EquippedItemClass < 0)
+    if (spellInfo->EquippedItemClass <= 0)
         return true;
 
     // scan other equipped items for same requirements (mostly 2 daggers/etc)

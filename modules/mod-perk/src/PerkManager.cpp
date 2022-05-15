@@ -321,7 +321,7 @@ void PerksManager::ResetCharacter(Player* player)
     player->resetSpells();
     player->ClearQuestStatus();
     CharacterPerks[player->GetGUID().GetCounter()].clear();
-    ChatHandler(player->GetSession()).PSendSysMessage("Your character has been reset, you will be disconnected in 20 seconds to apply all changes. You are now prestige {}", GetPrestigeLevel(player));
+    player->GetSession()->LogoutPlayer(true);
 }
 
 
