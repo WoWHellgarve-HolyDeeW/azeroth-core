@@ -321,7 +321,7 @@ void PerksManager::ResetCharacter(Player* player)
     player->resetSpells();
     player->ClearQuestStatus();
     CharacterPerks[player->GetGUID().GetCounter()].clear();
-    player->GetSession()->LogoutPlayer(true);
+    // player->GetSession()->LogoutPlayer(true);
 }
 
 
@@ -372,7 +372,7 @@ bool PerksManager::FoundSimilar(Player* player, std::string uuid, uint32 spellId
         CharacterPerks[player->GetGUID().GetCounter()].begin(),
         CharacterPerks[player->GetGUID().GetCounter()].end(),
         [uuid, spellId](const PerksManager::CharacterPerk& perk)
-    { return perk.uuid == uuid &perk.spellId == spellId; });
+    { return perk.uuid == uuid && perk.spellId == spellId; });
 
     if (perk != CharacterPerks[player->GetGUID().GetCounter()].end())
         return true;
