@@ -18,7 +18,6 @@ public:
         uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item);
         if (enchantId != 0)
             RandomEnchant::ApplyRandomEnchant(item, enchantId, player);
-
     }
    
 };

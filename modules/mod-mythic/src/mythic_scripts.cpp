@@ -29,9 +29,7 @@ public:
         Map* map = player->GetMap();
         std::string mapName = map->GetMapName();
         std::string gossip = "Start " + mapName + " on Mythic difficulty.";
-        auto itr = MythicManager::encounters.find(player->GetMap()->GetInstanceId());
-        if (itr == MythicManager::encounters.end())
-            AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, gossip, 0, 0);
+        AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, gossip, 0, 0);
         SendGossipMenuFor(player, DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
         return true;
     }
@@ -85,32 +83,45 @@ public:
         if (!creature->IsAlive())
             return;
 
+        if (!creature->isWorldBoss())
+            return;
+
+        if (!creature->IsDungeonBoss())
+            return;
+
         if (!MythicManager::IsInMythic(creature->GetMap()->GetInstanceId()))
             return;
 
         if (MythicManager::creatureAlreadyCalculated(creature->GetMap()->GetInstanceId(), creature->GetGUID().GetCounter()))
             return;
 
+        MythicManager::Mythic mythic = MythicManager::GetMythicEncounter(creature->GetMap()->GetInstanceId());
+
         CreatureBaseStats const* origCreatureStats = sObjectMgr->GetCreatureBaseStats(creature->getLevel(), creature->GetCreatureTemplate()->unit_class);
         uint32 baseHealth = origCreatureStats->GenerateHealth(creature->GetCreatureTemplate());
         uint32 baseMana = origCreatureStats->GenerateMana(creature->GetCreatureTemplate());
-        uint32 playersCounts = creature->GetMap()->GetPlayersCountExceptGMs() == 0 ? 1 : creature->GetMap()->GetPlayersCountExceptGMs();
+        uint32 playersCounts = mythic.map->GetPlayersCountExceptGMs() == 0 ? 1 : mythic.map->GetPlayersCountExceptGMs();;
+
+        float scaleWithPlayers = 0.0f;
+        float scaledHealth = 0.0f;
+        float scaledMana = 0.0f;
 
         Modifier modifier = MythicManager::GetModifier(creature->GetEntry());
-        float mythicDifficulty = MythicManager::mythicDifficulty; // default in mythic
-        float healthCofficient = MythicManager::healthCofficient; // Increase by 10% of each new player;
-        if (modifier.healthCofficient && modifier.healthMultiplier) {
-            healthCofficient = modifier.healthCofficient;
-            mythicDifficulty = modifier.healthMultiplier;
+
+        if (mythic.isRaid) {
+            scaleWithPlayers = modifier.healthCofficient ? modifier.healthCofficient : 0.25f * playersCounts;
+            scaledHealth = round(((float)baseHealth * 2.0f) * scaleWithPlayers);
+            scaledMana = round(((float)baseMana * 2.0f) * scaleWithPlayers);
         }
-        const float scaleWithPlayers = healthCofficient * playersCounts;
-        float scaledHealth = round(((float)baseHealth * mythicDifficulty) * scaleWithPlayers);
-        float scaledMana = round(((float)baseMana * mythicDifficulty) * scaleWithPlayers);
+        else {
+            scaledHealth = round(((float)baseHealth * 2.0f));
+            scaledMana = round(((float)baseMana * 2.0f));
+        }
+
         creature->SetMaxHealth(scaledHealth);
         creature->SetHealth(scaledHealth);
         creature->SetMaxPower(POWER_MANA, scaledMana);
         creature->SetPower(POWER_MANA, scaledMana);
-        MythicManager::encounters[creature->GetMap()->GetInstanceId()].push_back(creature->GetGUID().GetCounter());
 ;    }
 };
 
@@ -149,10 +160,23 @@ public:
 
     uint32 _Modifer_DealDamage(Unit* target, Unit* attacker, uint32 damage)
     {
+
+        if (!MythicManager::IsInMythic(target->GetMap()->GetInstanceId()))
+            return damage;
+
+        if (!attacker->ToCreature())
+            return damage;
+
+        if (!attacker->ToCreature()->isWorldBoss())
+            return damage;
+
+        if (!attacker->ToCreature()->IsDungeonBoss())
+            return damage;
+
         if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
             return damage;
 
-        float damageMultiplier = 1.5f; // default in mythic
+        float damageMultiplier = 2.0f; // default in mythic
 
         Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
 
@@ -173,45 +197,10 @@ public:
     PS_Mythic() : PlayerScript("PS_Mythic") { }
 
     void OnMapChanged(Player* player) {
-
-        if (player->IsGameMaster())
-            return;
-
-        uint32 instanceId = GetMythicInstanceId(player);
-        if (instanceId > 0) {
-            auto itr = MythicManager::encounters.find(instanceId);
-            if (itr != MythicManager::encounters.end())
-                itr->second.clear();
-            NewPlayer(player);
+        if (Group* group = player->GetGroup()) {
+            MythicManager::ResetMythic(group, false);
         }
     }
-
-    uint32 GetMythicInstanceId(Player* player) {
-
-        if (!player->GetGroup())
-            return 0;
-
-        Group::MemberSlotList const& members = player->GetGroup()->GetMemberSlots();
-        for (auto itr = members.begin(); itr != members.end(); ++itr) {
-            Player* GroupMember = ObjectAccessor::FindPlayer(itr->guid);
-            if (GroupMember) {
-                if (MythicManager::IsInMythic(GroupMember) && GroupMember->GetGUID() != player->GetGUID()) {
-                    return GroupMember->GetMap()->GetInstanceId();
-                }
-            }
-        }
-        return 0;
-    }
-
-    void NewPlayer(Player* player) {
-        Group::MemberSlotList const& members = player->GetGroup()->GetMemberSlots();
-        for (auto itr = members.begin(); itr != members.end(); ++itr) {
-            Player* GroupMember = ObjectAccessor::FindPlayer(itr->guid);
-            if (GroupMember)
-                ChatHandler(GroupMember->GetSession()).PSendSysMessage("[Mythic message] : You raid is now setup for %u players", GroupMember->GetMap()->GetPlayersCountExceptGMs());
-        }
-    }
-
 };
 
 class GS_Mythic : public GroupScript
@@ -220,22 +209,8 @@ public:
     GS_Mythic() : GroupScript("GS_Mythic") { }
 
     void OnDisband(Group* group) {
-
-        if (!group)
-            return;
-
-        Player* leader = group->GetLeader();
-
-        if (!leader)
-            return;
-
-        uint32 instanceId = leader->GetMap()->GetInstanceId();
-        auto itr = MythicManager::encounters.find(instanceId);
-        if (itr != MythicManager::encounters.end()) {
-            MythicManager::encounters.erase(itr);
-        }
-    } 
-
+        MythicManager::ResetMythic(group, true);
+    }
 };
 
 
@@ -259,18 +234,10 @@ public:
         MythicManager::PreloadAllCreaturesIds();
         MythicManager::PreloadAllLoot();
         MythicManager::PreloadAllRequierements();
-        MythicManager::LoadConfig();
-        Player* player = handler->GetPlayer();
-        uint32 instanceId = player->GetMap()->GetInstanceId();
-        auto itr = MythicManager::encounters.find(instanceId);
-        if (itr != MythicManager::encounters.end()) {
-            itr->second.clear();
-        }
-        ChatHandler(handler->GetSession()).PSendSysMessage("Mythic reloaded");
+
         return true;
     }
 };
-
 
 class US_Mythic : public UnitScript
 {
@@ -278,9 +245,6 @@ public:
     US_Mythic() : UnitScript("CS_Mythic") { }
 
     void OnBossCompleted(Unit* unit, Creature* creature, GameObject* go, uint32 bossId) {
-
-
-        LOG_ERROR("ERROR", "On boss completed");
 
         Player* player = unit->ToPlayer();
         Group* group = player->GetGroup();
@@ -312,7 +276,6 @@ public:
             MythicManager::PreloadAllCreaturesIds();
             MythicManager::PreloadAllLoot();
             MythicManager::PreloadAllRequierements();
-            MythicManager::LoadConfig();
         }
     }
 };

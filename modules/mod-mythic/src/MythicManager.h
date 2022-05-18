@@ -24,18 +24,22 @@ struct Modifier {
     float healthCofficient;
 };
 
-class MythicManager {
 
+class MythicManager {
 public:
 
-    static float mythicDifficulty;
-    static float healthCofficient;
+    struct Mythic {
+        Map* map;
+        uint64 groupGuid;
+        Player* leader;
+        bool isRaid;
+        std::vector<uint64> creatureGuids;
+    };
     static void CreateLoot(Player* player, uint32 bossId, Creature* boss);
     static void CreateLoot(Player* player, uint32 bossId, GameObject* go);
     static void StartMythic(Player* player);
     static void StopMythic(Player* player);
     static void AddKillCreditBoss(Player* player, uint32 bossId);
-    static std::map<uint32 /* instance Id */, std::vector<uint64>> encounters;
     static bool IsInMythic(uint32 instanceId);
     static bool IsInMythic(Player* player);
     static bool creatureAlreadyCalculated(uint32 instanceId, uint64 guid);
@@ -44,7 +48,8 @@ public:
     static void PreloadAllCompletions();
     static void PreloadAllRequierements();
     static void PreloadAllCreaturesIds();
-    static void LoadConfig();
+    static Mythic GetMythicEncounter(uint32 instanceId);
+    static void ResetMythic(Group* group, bool remove);
 
 private:
 
@@ -52,6 +57,7 @@ private:
     static std::vector<Completion> completions;
     static std::map<uint32 /* mapId */, uint32 /* bossId */> requierements;
     static std::map<uint32 /* creatureId */, Modifier /* Modifier */> creaturesModifiers;
+    static std::map<uint32 /* instance Id */, Mythic> encounters;
 
     static bool CanDoMythic(Player* player, uint32 mapId);
     static std::vector<LootStoreItem> GenerateMythicLoot(Player* killer, uint32 bossId);

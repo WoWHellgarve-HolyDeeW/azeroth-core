@@ -3,11 +3,8 @@
 std::map<uint32 /* bossId */, std::vector<PossibleLoot> /* possibleLoot*/> MythicManager::loots = {};
 std::vector<Completion> MythicManager::completions = {};
 std::map<uint32, uint32> MythicManager::requierements = {};
-std::map<uint32 /* mapId*/, std::vector<uint64>> MythicManager::encounters = {};
+std::map<uint32, MythicManager::Mythic> MythicManager::encounters = {};
 std::map<uint32 /* creatureId */, Modifier /* Modifier */> MythicManager::creaturesModifiers = {};
-
-float MythicManager::healthCofficient = 1.1f;
-float MythicManager::mythicDifficulty = 2.0f;
 
 void MythicManager::CreateLoot(Player* player, uint32 bossId, Creature* boss)
 {
@@ -98,7 +95,7 @@ void MythicManager::StartMythic(Player* player)
 
         ChatHandler(player->GetSession()).PSendSysMessage("Theses player(s) in your group do not meet the requirements to start : %s", names);
         return;
-    }*/
+    } */
 
     for (auto itr = members.begin(); itr != members.end(); ++itr) {
         Player* GroupMember = ObjectAccessor::GetPlayer(map, itr->guid);
@@ -106,7 +103,8 @@ void MythicManager::StartMythic(Player* player)
             ChatHandler(GroupMember->GetSession()).PSendSysMessage("Your group leader started %s on Mythic difficulty.", map->GetMapName());
     }
 
-    MythicManager::encounters[map->GetInstanceId()] = {};
+    bool isRaid = map->IsRaid();
+    MythicManager::encounters[map->GetInstanceId()] = { map, group->GetGUID().GetCounter(), player, isRaid, {}};
 }
 
 void MythicManager::StopMythic(Player* player)
@@ -190,12 +188,6 @@ void MythicManager::PreloadAllCreaturesIds()
     }
 }
 
-void MythicManager::LoadConfig()
-{
-    mythicDifficulty = sConfigMgr->GetOption<float>("Mythic.mythicDifficulty", 2.0f); // default in mythic
-    healthCofficient = sConfigMgr->GetOption<float>("Mythic.healthCofficient", 1.1f); // Increase by 10% of each new player;
-}
-
 bool MythicManager::CanDoMythic(Player* player, uint32 mapId)
 {
     auto it = MythicManager::requierements.find(mapId);
@@ -213,6 +205,27 @@ bool MythicManager::CanDoMythic(Player* player, uint32 mapId)
         return false;
 
     return true;  
+}
+
+MythicManager::Mythic MythicManager::GetMythicEncounter(uint32 instanceId)
+{
+    auto itr = MythicManager::encounters.find(instanceId);
+    if (itr != MythicManager::encounters.end())
+        return itr->second;
+
+    return {};
+}
+
+void MythicManager::ResetMythic(Group* group, bool remove)
+{
+    for (auto it = MythicManager::encounters.begin(); it != MythicManager::encounters.end(); ++it)
+    {
+        if (it->second.groupGuid == group->GetGUID().GetCounter()) {
+            it->second.creatureGuids.clear();
+            if (remove)
+                MythicManager::encounters.erase(it);
+        }
+    }
 }
 
 std::vector<LootStoreItem> MythicManager::GenerateMythicLoot(Player* killer, uint32 bossId)
@@ -284,9 +297,11 @@ bool MythicManager::IsInMythic(Player* player)
 
 bool MythicManager::creatureAlreadyCalculated(uint32 instanceId, uint64 guid)
 {
-    if (std::find(MythicManager::encounters[instanceId].begin(), MythicManager::encounters[instanceId].end(), guid)
-        != MythicManager::encounters[instanceId].end())
-        return true;
+    auto itr = MythicManager::encounters.find(instanceId);
+    if (itr != MythicManager::encounters.end())
+        if (std::find(MythicManager::encounters[instanceId].creatureGuids.begin(), MythicManager::encounters[instanceId].creatureGuids.end(), guid)
+            != MythicManager::encounters[instanceId].creatureGuids.end())
+                return true;
 
     return false;
 }
