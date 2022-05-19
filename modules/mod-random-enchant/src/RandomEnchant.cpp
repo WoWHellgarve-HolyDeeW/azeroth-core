@@ -15,7 +15,6 @@ void RandomEnchant::ApplyRandomEnchant(Item* item, uint32 enchantId, Player* pla
     player->ApplyEnchantment(item, BONUS_ENCHANTMENT_SLOT, true);
 }
 
-
 uint32 RandomEnchant::GetItemEnchantSpellId(Player* player, uint32 bag, uint32 slotId)
 {
    if (Item* pItem = GetItemByPosition(player, bag, slotId)) {
@@ -127,3 +126,13 @@ void RandomEnchant::PreloadAllEnchants()
     }
     LOG_INFO("server.loading", "loaded %u bonus...", mEnchants.size());
 }
+
+void RandomEnchant::onLogin(Player* player)
+{
+}
+
+void RandomEnchant::onLogout(Player* player)
+{
+    player->_ApplyAllLevelScaleItemMods(false);
+}
+

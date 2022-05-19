@@ -105,12 +105,6 @@ void PerksManager::InsertNewPerksForLevelUp(Player* player, std::string uuid)
     uint8 maxPerks = isPrestigeActive(player) ? 2 : 3;
     uint8 totalPerks = 0;
 
-    if (isPrestigeActive(player)) {
-        PerksManager::PerkPoll perkPoll = GetRandomPrestigeSpell(player);
-        PerksManager::Perk perk = PerksManager::GetPerk(perkPoll.spellId);
-        PerksManager::InsertOnePerk(player, uuid, perk.spellId, perk.isAura, 0);
-    }
-
     for (auto const& possiblePerk : tempPerks) {
         if (totalPerks >= maxPerks)
             break;
@@ -122,7 +116,11 @@ void PerksManager::InsertNewPerksForLevelUp(Player* player, std::string uuid)
         }
     }
 
-   
+    if (isPrestigeActive(player)) {
+        PerksManager::PerkPoll perkPoll = GetRandomPrestigeSpell(player);
+        PerksManager::Perk perk = PerksManager::GetPerk(perkPoll.spellId);
+        PerksManager::InsertOnePerk(player, uuid, perk.spellId, perk.isAura, 0);
+    }
 }
 
 void PerksManager::OnLevelUp(Player* player, uint8 oldLevel)

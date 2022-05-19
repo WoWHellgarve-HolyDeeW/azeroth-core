@@ -17,8 +17,37 @@ public:
     {
         uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item);
         if (enchantId != 0)
-            RandomEnchant::ApplyRandomEnchant(item, enchantId, player);
+            RandomEnchant::ApplyRandomEnchant(item, enchantId, player); 
     }
+
+    void OnEquip(Player* player, Item* item, uint8 /*bag*/, uint8 /*slot*/, bool /*update*/) {
+        player->_ApplyAllLevelScaleItemMods(false);
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        {
+            Item* itemEquiped = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+            if (itemEquiped) {
+                uint32 enchantId = itemEquiped->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
+                if (enchantId) {
+                    player->ApplyEnchantment(itemEquiped, BONUS_ENCHANTMENT_SLOT, true);
+                }
+            }
+        } 
+    }
+
+    void OnLogin(Player* player) {
+        player->_ApplyAllLevelScaleItemMods(false);
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        {
+            Item* itemEquiped = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+            if (itemEquiped) {
+                uint32 enchantId = itemEquiped->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
+                if (enchantId) {
+                    player->ApplyEnchantment(itemEquiped, BONUS_ENCHANTMENT_SLOT, true);
+                }
+            }
+        }
+    }
+
    
 };
 

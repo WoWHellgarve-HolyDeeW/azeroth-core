@@ -109,7 +109,7 @@ public:
         Modifier modifier = MythicManager::GetModifier(creature->GetEntry());
 
         if (mythic.isRaid) {
-            scaleWithPlayers = modifier.healthCofficient ? modifier.healthCofficient : 0.25f * playersCounts;
+            scaleWithPlayers = modifier.healthCofficient ? modifier.healthCofficient : 0.20f * playersCounts;
             scaledHealth = round(((float)baseHealth * 2.0f) * scaleWithPlayers);
             scaledMana = round(((float)baseMana * 2.0f) * scaleWithPlayers);
         }
@@ -176,7 +176,7 @@ public:
         if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
             return damage;
 
-        float damageMultiplier = 2.0f; // default in mythic
+        float damageMultiplier = 1.5f; // default in mythic
 
         Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
 

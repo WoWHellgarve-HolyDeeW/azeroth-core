@@ -24,4 +24,6 @@ public:
     static std::vector<uint32> GetStats(const ItemTemplate* item);
     static std::vector<uint32> GetPossibleEnchantsToApply(Player* player, uint32 bag, uint32 slotId);
     static void PreloadAllEnchants();
+    static void onLogin(Player* player);
+    static void onLogout(Player* player);
 };
