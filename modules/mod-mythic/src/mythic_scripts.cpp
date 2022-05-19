@@ -112,7 +112,7 @@ public:
         Modifier modifier = MythicManager::GetModifier(creature->GetEntry());
 
         if (mythic.isRaid) {
-            scaleWithPlayers = modifier.healthCofficient ? modifier.healthCofficient : 0.20f * playersCounts;
+            scaleWithPlayers = modifier.healthCofficient ? modifier.healthCofficient : 0.125f * playersCounts;
             scaledHealth = round(((float)baseHealth * 2.0f) * scaleWithPlayers);
             scaledMana = round(((float)baseMana * 2.0f) * scaleWithPlayers);
         }
