@@ -13,6 +13,25 @@ public:
 
     RandomEnchantsPlayer() : PlayerScript("RandomEnchantsPlayer") { }
 
+
+    void applyingEnchant(Player* player, bool apply, Item* item = nullptr) {
+
+        if (item) {
+            return;
+        }
+
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        {
+            Item* itemEquiped = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
+            if (itemEquiped) {
+                uint32 enchantId = itemEquiped->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
+                if (enchantId) {
+                    player->ApplyEnchantment(itemEquiped, BONUS_ENCHANTMENT_SLOT, apply);
+                }
+            }
+        }
+    }
+
     void OnCreateItem(Player* player, Item* item, uint32 /*count*/) override
     {
         uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item);
@@ -21,34 +40,25 @@ public:
     }
 
     void OnEquip(Player* player, Item* item, uint8 /*bag*/, uint8 /*slot*/, bool /*update*/) {
-        player->_ApplyAllLevelScaleItemMods(false);
-        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
-        {
-            Item* itemEquiped = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-            if (itemEquiped) {
-                uint32 enchantId = itemEquiped->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
-                if (enchantId) {
-                    player->ApplyEnchantment(itemEquiped, BONUS_ENCHANTMENT_SLOT, true);
-                }
-            }
-        } 
+        applyingEnchant(player, false);
+        applyingEnchant(player, true);
     }
 
-    void OnLogin(Player* player) {
-        player->_ApplyAllLevelScaleItemMods(false);
-        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
-        {
-            Item* itemEquiped = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-            if (itemEquiped) {
-                uint32 enchantId = itemEquiped->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
-                if (enchantId) {
-                    player->ApplyEnchantment(itemEquiped, BONUS_ENCHANTMENT_SLOT, true);
-                }
-            }
+    void OnUnEquip(Player* player, Item* item) {
+        uint32 enchantId = item->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
+        if (enchantId) {
+            SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchantId);
+            SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(pEnchant->spellid[0]);
+            if(spellInfo)
+                player->RemoveAuraFromStack(spellInfo->Id);
         }
     }
 
-   
+    void OnLogin(Player* player) {
+        applyingEnchant(player, false);
+        applyingEnchant(player, true);
+    }
+
 };
 
 

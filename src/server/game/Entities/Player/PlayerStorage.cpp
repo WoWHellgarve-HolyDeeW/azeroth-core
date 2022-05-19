@@ -3044,6 +3044,7 @@ void Player::MoveItemToInventory(ItemPosCountVec const& dest, Item* pItem, bool 
         if (pLastItem->HasFlag(ITEM_FIELD_FLAGS, ITEM_FIELD_FLAG_BOP_TRADEABLE))
             AddTradeableItem(pLastItem);
     }
+
 }
 
 void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
@@ -3667,6 +3668,7 @@ void Player::SwapItem(uint16 src, uint16 dst)
             RemoveItem(srcbag, srcslot, true);
             StoreItem(dest, pSrcItem, true);
             UpdateTitansGrip();
+            sScriptMgr->OnUnEquip(this, pSrcItem);
             if (IsBankPos(src))
                 ItemAddedQuestCheck(pSrcItem->GetEntry(), pSrcItem->GetCount());
         }
@@ -3684,6 +3686,8 @@ void Player::SwapItem(uint16 src, uint16 dst)
             BankItem(dest, pSrcItem, true);
             UpdateTitansGrip();
             ItemRemovedQuestCheck(pSrcItem->GetEntry(), pSrcItem->GetCount());
+            sScriptMgr->OnUnEquip(this, pSrcItem);
+
         }
         else if (IsEquipmentPos(dst))
         {
@@ -3697,6 +3701,7 @@ void Player::SwapItem(uint16 src, uint16 dst)
 
             RemoveItem(srcbag, srcslot, true);
             EquipItem(dest, pSrcItem, true);
+            sScriptMgr->OnUnEquip(this, pSrcItem);
             AutoUnequipOffhandIfNeed();
         }
 
@@ -3748,6 +3753,7 @@ void Player::SwapItem(uint16 src, uint16 dst)
                 }
             }
             SendRefundInfo(pDstItem);
+            sScriptMgr->OnUnEquip(this, pSrcItem);
             return;
         }
     }
@@ -4328,6 +4334,7 @@ void Player::ApplyEnchantment(Item* item, bool apply)
 {
     for (uint32 slot = 0; slot < MAX_ENCHANTMENT_SLOT; ++slot)
         ApplyEnchantment(item, EnchantmentSlot(slot), apply);
+   
 }
 
 void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool apply_dur, bool ignore_condition)

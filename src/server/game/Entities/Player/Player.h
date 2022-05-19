@@ -2146,10 +2146,10 @@ public:
     void _ApplyWeaponDependentAuraCritMod(Item* item, WeaponAttackType attackType, AuraEffect const* aura, bool apply);
     void _ApplyWeaponDependentAuraDamageMod(Item* item, WeaponAttackType attackType, AuraEffect const* aura, bool apply);
 
-    void _ApplyItemMods(Item* item, uint8 slot, bool apply);
+    void _ApplyItemMods(Item* item, uint8 slot, bool apply, bool onlyEnchant = false);
     void _RemoveAllItemMods();
     void _ApplyAllItemMods();
-    void _ApplyAllLevelScaleItemMods(bool apply);
+    void _ApplyAllLevelScaleItemMods(bool apply, bool onlyEnchant = false);
     void _ApplyItemBonuses(ItemTemplate const* proto, uint8 slot, bool apply, bool only_level_scale = false);
     void _ApplyWeaponDamage(uint8 slot, ItemTemplate const* proto, ScalingStatValuesEntry const* ssv, bool apply);
     void _ApplyAmmoBonuses();

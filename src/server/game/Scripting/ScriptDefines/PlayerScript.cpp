@@ -535,6 +535,14 @@ void ScriptMgr::OnEquip(Player* player, Item* it, uint8 bag, uint8 slot, bool up
     });
 }
 
+void ScriptMgr::OnUnEquip(Player* player, Item* item)
+{
+    ExecuteScript<PlayerScript>([&](PlayerScript* script)
+    {
+        script->OnUnEquip(player, item);
+    });
+}
+
 void ScriptMgr::OnPlayerJoinBG(Player* player)
 {
     ExecuteScript<PlayerScript>([&](PlayerScript* script)

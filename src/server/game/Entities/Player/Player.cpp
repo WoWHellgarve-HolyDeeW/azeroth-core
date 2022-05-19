@@ -6429,7 +6429,7 @@ void Player::DuelComplete(DuelCompleteType type)
 
 //---------------------------------------------------------//
 
-void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply)
+void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply, bool onlyEnchant)
 {
     if (slot >= INVENTORY_SLOT_BAG_END || !item)
         return;
@@ -6447,6 +6447,11 @@ void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply)
 
     uint8 attacktype = Player::GetAttackBySlot(slot);
 
+    if (onlyEnchant) {
+        ApplyEnchantment(item, apply);
+        return;
+    }
+
     if (item->HasSocket())                              //only (un)equipping of items with sockets can influence metagems, so no need to waste time with normal items
         CorrectMetaGemEnchants(slot, apply);
 
@@ -6459,7 +6464,6 @@ void Player::_ApplyItemMods(Item* item, uint8 slot, bool apply)
         _ApplyAmmoBonuses();
 
     ApplyItemEquipSpell(item, apply);
-    ApplyEnchantment(item, apply);
 
     LOG_DEBUG("entities.player.items", "_ApplyItemMods complete.");
 }
@@ -7453,7 +7457,7 @@ void Player::_ApplyAllItemMods()
     LOG_DEBUG("entities.player.items", "_ApplyAllItemMods complete.");
 }
 
-void Player::_ApplyAllLevelScaleItemMods(bool apply)
+void Player::_ApplyAllLevelScaleItemMods(bool apply, bool onlyEnchant)
 {
     for (uint8 i = 0; i < INVENTORY_SLOT_BAG_END; ++i)
     {
@@ -7466,7 +7470,7 @@ void Player::_ApplyAllLevelScaleItemMods(bool apply)
             if (!proto)
                 continue;
 
-            _ApplyItemMods(m_items[i], i, apply);
+            _ApplyItemMods(m_items[i], i, apply, onlyEnchant);
         }
     }
 }

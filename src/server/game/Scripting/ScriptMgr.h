@@ -1137,6 +1137,8 @@ public:
     // After an item has been equipped
     virtual void OnEquip(Player* /*player*/, Item* /*it*/, uint8 /*bag*/, uint8 /*slot*/, bool /*update*/) { }
 
+    virtual void OnUnEquip(Player* /*player*/, Item* /*Item*/) { }
+
     // After player enters queue for BG
     virtual void OnPlayerJoinBG(Player* /*player*/) { }
 
@@ -2230,6 +2232,7 @@ public: /* PlayerScript */
     void OnAfterPlayerSetVisibleItemSlot(Player* player, uint8 slot, Item* item);
     void OnAfterPlayerMoveItemFromInventory(Player* player, Item* it, uint8 bag, uint8 slot, bool update);
     void OnEquip(Player* player, Item* it, uint8 bag, uint8 slot, bool update);
+    void OnUnEquip(Player* player, Item* item);
     void OnPlayerJoinBG(Player* player);
     void OnPlayerJoinArena(Player* player);
     void GetCustomGetArenaTeamId(Player const* player, uint8 slot, uint32& teamID) const;
