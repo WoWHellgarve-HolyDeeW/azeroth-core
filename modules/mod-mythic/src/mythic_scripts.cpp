@@ -86,6 +86,9 @@ public:
         if (!creature->isWorldBoss())
             return;
 
+        if (creature->IsInCombat())
+            return;
+
         if (!creature->IsDungeonBoss())
             return;
 
