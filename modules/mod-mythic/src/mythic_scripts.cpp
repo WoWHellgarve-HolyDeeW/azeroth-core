@@ -83,13 +83,10 @@ public:
         if (!creature->IsAlive())
             return;
             
-        if (!creature->isWorldBoss() || !creature->IsDungeonBoss())
+        if (!creature->isWorldBoss() && !creature->IsDungeonBoss())
             return;
 
         if (creature->IsInCombat())
-            return;
-
-        if (!creature->IsDungeonBoss())
             return;
 
         if (!MythicManager::IsInMythic(creature->GetMap()->GetInstanceId()))
@@ -173,13 +170,11 @@ public:
         if (!attacker->ToCreature())
             return damage;
 
-        if (!attacker->ToCreature()->isWorldBoss() || !attacker->ToCreature()->IsDungeonBoss())
+        if (!attacker->ToCreature()->isWorldBoss() && !attacker->ToCreature()->IsDungeonBoss())
             return damage;
-
 
         if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
             return damage;
-
 
         MythicManager::Mythic mythic = MythicManager::GetMythicEncounter(attacker->GetMap()->GetInstanceId());
 
