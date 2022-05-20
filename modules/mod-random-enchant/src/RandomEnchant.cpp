@@ -24,6 +24,10 @@ uint32 RandomEnchant::GetItemEnchantSpellId(Player* player, uint32 bag, uint32 s
             return 0;  
 
         SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchantId);
+
+        if (!pEnchant)
+            return 0;
+
         SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(pEnchant->spellid[0]);
 
         if (!spellInfo)
@@ -65,9 +69,8 @@ uint32 RandomEnchant::GetRandomEnchant(Player* player, Item* item, bool spellId)
     std::vector<uint32> enchants = {};
     int allowableClass = player->getClass();
 
-    if (itemTemplate->Class != 2 && itemTemplate->Class != 4) {
+    if (itemTemplate->Class != 2 && itemTemplate->Class != 4)
         return 0;
-    }
 
     for (auto& enchant : mEnchants) {
         if ((enchant.second.allowableClass & player->getClassMask()) != 0)
@@ -75,6 +78,15 @@ uint32 RandomEnchant::GetRandomEnchant(Player* player, Item* item, bool spellId)
           enchants.push_back(spellId ? enchant.first : enchant.second.enchantId);
         }
     }
+
+    uint32 previousEnchantId = item->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
+
+    if (previousEnchantId) {
+        enchants.erase(std::remove(enchants.begin(), enchants.end(), previousEnchantId), enchants.end());
+    }
+
+    if (enchants.size() == 0)
+        return 0;
 
     int random = rand() % enchants.size();
     return enchants[random];
@@ -94,14 +106,29 @@ std::vector<uint32> RandomEnchant::GetPossibleEnchantsToApply(Player* player, ui
     player->DestroyItemCount(40752, 1, true);*/
 
     Item* item = GetItemByPosition(player, bag, slotId);
-    uint32 enchantId = GetRandomEnchant(player, item, true);
+
+    if (!item)
+        return {};
+
     auto it = lastestEnchants.find(player->GetGUID());
 
     if (it != lastestEnchants.end())
         lastestEnchants.erase(it);
 
+    uint32 enchantId = GetRandomEnchant(player, item, true);
+
+    if (enchantId == 0)
+        return {};
+
     uint32 previousEnchantId = item->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
+
+    if (!previousEnchantId)
+        return {};
+
     SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(previousEnchantId);
+
+    if (!pEnchant)
+        return {};
 
     lastestEnchants[player->GetGUID()].push_back(pEnchant->spellid[0]);
     lastestEnchants[player->GetGUID()].push_back(enchantId);

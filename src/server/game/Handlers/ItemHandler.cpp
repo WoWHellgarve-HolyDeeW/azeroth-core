@@ -1525,10 +1525,10 @@ void WorldSession::HandleSocketOpcode(WorldPacket& recvData)
     bool SocketBonusToBeActivated = itemTarget->GemsFitSockets();//current socketbonus state
     if (SocketBonusActivated ^ SocketBonusToBeActivated)     //if there was a change...
     {
-        _player->ApplyEnchantment(itemTarget, BONUS_ENCHANTMENT_SLOT, false);
-        itemTarget->SetEnchantment(BONUS_ENCHANTMENT_SLOT, (SocketBonusToBeActivated ? itemTarget->GetTemplate()->socketBonus : 0), 0, 0, _player->GetGUID());
-        _player->ApplyEnchantment(itemTarget, BONUS_ENCHANTMENT_SLOT, true);
-        //it is not displayed, client has an inbuilt system to determine if the bonus is activated
+        // _player->ApplyEnchantment(itemTarget, BONUS_ENCHANTMENT_SLOT, false);
+        // itemTarget->SetEnchantment(BONUS_ENCHANTMENT_SLOT, (SocketBonusToBeActivated ? itemTarget->GetTemplate()->socketBonus : 0), 0, 0, _player->GetGUID());
+        //  _player->ApplyEnchantment(itemTarget, BONUS_ENCHANTMENT_SLOT, true);
+        // it is not displayed, client has an inbuilt system to determine if the bonus is activated
     }
 
     _player->ToggleMetaGemsActive(slot, true);              //turn on all metagems (except for target item)

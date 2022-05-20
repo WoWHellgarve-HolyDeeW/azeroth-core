@@ -11,47 +11,50 @@ void MythicManager::CreateLoot(Player* player, uint32 bossId, Creature* boss)
     if (!player)
         return;
 
-    if (!IsInMythic(player->GetMap()->GetInstanceId()))
+    uint32 instanceId = player->GetMap()->GetInstanceId();
+
+    if (!IsInMythic(instanceId))
         return;
 
     boss->loot.items.clear();
 
-    if (player->GetMap()->IsNonRaidDungeon()) {
-        // We Just rewards more emblems
-    }
-    else {
-        // We are in raids.
+    Mythic mythic = GetMythicEncounter(instanceId);
+
+    if (mythic.isRaid) {
         std::vector<LootStoreItem> loots = GenerateMythicLoot(player, bossId);
         for (auto& item : loots) {
             boss->loot.AddItem(item);
         }
     }
+
+    RewardEmblemsPlayers(player, mythic.isRaid);
 }
 
 void MythicManager::CreateLoot(Player* player, uint32 bossId, GameObject* go)
 {
-    if(!player)
+    if (!player)
         return;
 
-    if (!IsInMythic(player->GetMap()->GetInstanceId()))
+    uint32 instanceId = player->GetMap()->GetInstanceId();
+
+    if (!IsInMythic(instanceId))
         return;
 
-    go->loot.clear();
+    go->loot.items.clear();
 
-    if (player->GetMap()->IsNonRaidDungeon()) {
-        // We Just rewards more emblems
-    }
-    else {
-        // We are in raids.
-        std::vector< LootStoreItem> loots = GenerateMythicLoot(player, bossId);
-        for (auto& item : loots)
+    Mythic mythic = GetMythicEncounter(instanceId);
+
+    if (mythic.isRaid) {
+        std::vector<LootStoreItem> loots = GenerateMythicLoot(player, bossId);
+        for (auto& item : loots) {
             go->loot.AddItem(item);
+        }
     }
 
-    go->loot.loot_type = LOOT_CORPSE;
+    RewardEmblemsPlayers(player, mythic.isRaid);
 }
 
-void MythicManager::StartMythic(Player* player)
+void MythicManager::StartMythic(Player* player, uint8 level)
 {
     Group* group = player->GetGroup();
 
@@ -98,13 +101,13 @@ void MythicManager::StartMythic(Player* player)
     } */
 
     for (auto itr = members.begin(); itr != members.end(); ++itr) {
-        Player* GroupMember = ObjectAccessor::GetPlayer(map, itr->guid);
+        Player* GroupMember = ObjectAccessor::FindPlayer(itr->guid);
         if (GroupMember)
             ChatHandler(GroupMember->GetSession()).PSendSysMessage("Your group leader started %s on Mythic difficulty.", map->GetMapName());
     }
 
     bool isRaid = map->IsRaid();
-    MythicManager::encounters[map->GetInstanceId()] = { map, group->GetGUID().GetCounter(), player, isRaid, {}};
+    MythicManager::encounters[map->GetInstanceId()] = { map, group->GetGUID().GetCounter(), player, isRaid, {}, level};
 }
 
 void MythicManager::StopMythic(Player* player)
@@ -228,6 +231,33 @@ void MythicManager::ResetMythic(Group* group, bool remove)
     }
 }
 
+void MythicManager::AddCreatureCalculated(uint32 instanceId, uint64 guid)
+{
+    MythicManager::encounters[instanceId].creatureGuids.push_back(guid);
+}
+
+void MythicManager::RewardEmblemsPlayers(Player* player, bool isRaid)
+{
+    if (!player)
+        return;
+
+    Group* group = player->GetGroup();
+
+    if (!group)
+        return;
+
+    uint32 count = isRaid ? 5 : 2;
+    uint32 emblemId = sConfigMgr->GetOption<uint32>("RaidEmblemId", 40753);
+
+    Group::MemberSlotList const& members = group->GetMemberSlots();
+    for (auto itr = members.begin(); itr != members.end(); ++itr) {
+        Player* GroupMember = ObjectAccessor::FindPlayer(itr->guid);
+        if (GroupMember) {
+            GroupMember->AddItem(emblemId, count);
+        }
+    }
+}
+
 std::vector<LootStoreItem> MythicManager::GenerateMythicLoot(Player* killer, uint32 bossId)
 {
     std::vector<LootStoreItem> loots = {};
@@ -241,14 +271,7 @@ std::vector<LootStoreItem> MythicManager::GenerateMythicLoot(Player* killer, uin
         return loots;
 
     uint32 playerCount = killer->GetMap()->GetPlayersCountExceptGMs();
-    uint32 itemCount = 3;
-
-    if (playerCount > 10 && playerCount < 15)
-        itemCount = 4;
-    if (playerCount > 15 && playerCount <= 20)
-        itemCount = 4;
-    if (playerCount > 20)
-        itemCount = 6;
+    uint32 itemCount = 5;
 
     for (size_t i = 1; i <= itemCount; i++)
     {

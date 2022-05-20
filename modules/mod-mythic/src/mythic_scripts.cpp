@@ -36,7 +36,7 @@ public:
 
     bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) override
     {
-        MythicManager::StartMythic(player);
+        MythicManager::StartMythic(player, 0);
         CloseGossipMenuFor(player);
         return true;
     }
@@ -112,11 +112,12 @@ public:
         Modifier modifier = MythicManager::GetModifier(creature->GetEntry());
 
         if (mythic.isRaid) {
-            scaleWithPlayers = modifier.healthCofficient ? modifier.healthCofficient : 0.125f * playersCounts;
+            scaleWithPlayers = modifier.healthCofficient ? modifier.healthCofficient : 0.10f * playersCounts;
             scaledHealth = round(((float)baseHealth * 2.0f) * scaleWithPlayers);
             scaledMana = round(((float)baseMana * 2.0f) * scaleWithPlayers);
         }
         else {
+            float multiplier = mythic.isRaid ? 2.0f : 4.5f;
             scaledHealth = round(((float)baseHealth * 2.0f));
             scaledMana = round(((float)baseMana * 2.0f));
         }
@@ -125,6 +126,8 @@ public:
         creature->SetHealth(scaledHealth);
         creature->SetMaxPower(POWER_MANA, scaledMana);
         creature->SetPower(POWER_MANA, scaledMana);
+
+        MythicManager::AddCreatureCalculated(creature->GetMap()->GetInstanceId(), creature->GetGUID().GetCounter());
 ;    }
 };
 
@@ -179,7 +182,11 @@ public:
         if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
             return damage;
 
-        float damageMultiplier = 1.5f; // default in mythic
+
+        MythicManager::Mythic mythic = MythicManager::GetMythicEncounter(attacker->GetMap()->GetInstanceId());
+
+
+        float damageMultiplier = mythic.isRaid ? 1.5f : 3.5f; // default in mythic
 
         Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
 

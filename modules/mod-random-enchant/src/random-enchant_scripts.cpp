@@ -34,7 +34,7 @@ public:
 
     void OnCreateItem(Player* player, Item* item, uint32 /*count*/) override
     {
-        uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item);
+        uint32 enchantId = RandomEnchant::GetRandomEnchant(player, item, false);
         if (enchantId != 0)
             RandomEnchant::ApplyRandomEnchant(item, enchantId, player); 
     }

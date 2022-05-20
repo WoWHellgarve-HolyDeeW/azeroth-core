@@ -34,10 +34,11 @@ public:
         Player* leader;
         bool isRaid;
         std::vector<uint64> creatureGuids;
+        uint8 level;
     };
     static void CreateLoot(Player* player, uint32 bossId, Creature* boss);
     static void CreateLoot(Player* player, uint32 bossId, GameObject* go);
-    static void StartMythic(Player* player);
+    static void StartMythic(Player* player, uint8 level);
     static void StopMythic(Player* player);
     static void AddKillCreditBoss(Player* player, uint32 bossId);
     static bool IsInMythic(uint32 instanceId);
@@ -50,9 +51,12 @@ public:
     static void PreloadAllCreaturesIds();
     static Mythic GetMythicEncounter(uint32 instanceId);
     static void ResetMythic(Group* group, bool remove);
+    static void AddCreatureCalculated(uint32 instanceId, uint64 guid);
 
 private:
 
+
+    static void RewardEmblemsPlayers(Player* player, bool isRaid);
     static std::map<uint32 /* bossId */, std::vector<PossibleLoot> /* possibleLoot*/> loots;
     static std::vector<Completion> completions;
     static std::map<uint32 /* mapId */, uint32 /* bossId */> requierements;
