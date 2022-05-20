@@ -82,8 +82,8 @@ public:
 
         if (!creature->IsAlive())
             return;
-
-        if (!creature->isWorldBoss())
+            
+        if (!creature->isWorldBoss() || !creature->IsDungeonBoss())
             return;
 
         if (creature->IsInCombat())
@@ -117,9 +117,9 @@ public:
             scaledMana = round(((float)baseMana * 2.0f) * scaleWithPlayers);
         }
         else {
-            float multiplier = mythic.isRaid ? 2.0f : 4.5f;
-            scaledHealth = round(((float)baseHealth * 2.0f));
-            scaledMana = round(((float)baseMana * 2.0f));
+            float multiplier = 2.5f;
+            scaledHealth = round(((float)baseHealth * multiplier));
+            scaledMana = round(((float)baseMana * multiplier));
         }
 
         creature->SetMaxHealth(scaledHealth);
@@ -173,11 +173,9 @@ public:
         if (!attacker->ToCreature())
             return damage;
 
-        if (!attacker->ToCreature()->isWorldBoss())
+        if (!attacker->ToCreature()->isWorldBoss() || !attacker->ToCreature()->IsDungeonBoss())
             return damage;
 
-        if (!attacker->ToCreature()->IsDungeonBoss())
-            return damage;
 
         if (!attacker || attacker->GetTypeId() == TYPEID_PLAYER || !attacker->IsInWorld())
             return damage;
@@ -262,7 +260,7 @@ public:
         if (player->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_NORMAL || player->GetMap()->GetDifficulty() == RAID_DIFFICULTY_25MAN_HEROIC) {
             Group::MemberSlotList const& members = group->GetMemberSlots();
             for (auto itr = members.begin(); itr != members.end(); ++itr) {
-                if (Player* GroupMember = ObjectAccessor::GetPlayer(player->GetMap(), itr->guid))
+                if (Player* GroupMember = ObjectAccessor::FindPlayer(itr->guid))
                     MythicManager::AddKillCreditBoss(GroupMember, bossId);
             }
         }

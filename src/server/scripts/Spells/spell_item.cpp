@@ -3641,6 +3641,8 @@ enum MirrensDrinkingHat
     SPELL_AERIE_PEAK_PALE_ALE   = 29829
 };
 
+
+
 // 29830 - Mirren's Drinking Hat
 class spell_item_mirrens_drinking_hat : public SpellScript
 {

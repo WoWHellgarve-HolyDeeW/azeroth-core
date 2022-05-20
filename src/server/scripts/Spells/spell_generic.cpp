@@ -4389,6 +4389,41 @@ class spell_gen_arcane_charge : public SpellScript
     }
 };
 
+
+std::vector<uint32> spells = { 12294, 12809, 6343, 12292, 12975, 17962, 20473, 3674, 53301, 53209, 49206, 33831, 48505, 5217, 19574, 3045, 11129, 12472, 12042, 12043, 31661, 60103, 51505,
+                              51505, 13877, 51713, 51690, 49016, 49222, 51052, 31884, 17116, 740, 47241, 50796, 46968, 1680, 8092, 47540 };
+
+class spell_reset_cooldown : public SpellScript
+{
+    PrepareSpellScript(spell_reset_cooldown);
+
+    bool Load() override
+    {
+        return GetCaster()->GetTypeId() == TYPEID_PLAYER;
+    }
+
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ 12294, 12809, 6343, 12292, 12975, 17962, 20473, 3674, 53301, 53209, 49206, 33831, 48505, 5217, 19574, 3045, 11129, 12472, 12042, 12043, 31661, 60103,
+            51505, 51505, 13877, 51713, 51690, 49016, 49222, 51052, 31884, 17116, 740, 47241, 50796, 46968, 1680, 8092, 47540 });
+    }
+
+    void HandleScript(SpellEffIndex /*effIndex*/)
+    {
+        Player* caster = GetCaster()->ToPlayer();
+        for (uint32 spellId : spells)
+            if (caster->HasSpellCooldown(spellId)) {
+                caster->RemoveSpellCooldown(spellId, true);
+                caster->GetGlobalCooldownMgr().CancelGlobalCooldown(sSpellMgr->GetSpellInfo(spellId));
+            }
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_reset_cooldown::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
 void AddSC_generic_spell_scripts()
 {
     RegisterSpellScript(spell_silithyst);
@@ -4522,4 +4557,5 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScript(spell_contagion_of_rot);
     RegisterSpellScript(spell_gen_holiday_buff_food);
     RegisterSpellScript(spell_gen_arcane_charge);
+    RegisterSpellScript(spell_reset_cooldown);
 }
