@@ -4389,13 +4389,9 @@ class spell_gen_arcane_charge : public SpellScript
     }
 };
 
-
-std::vector<uint32> spells = { 12294, 12809, 6343, 12292, 12975, 17962, 20473, 3674, 53301, 53209, 49206, 33831, 48505, 5217, 19574, 3045, 11129, 12472, 12042, 12043, 31661, 60103, 51505,
-                              51505, 13877, 51713, 51690, 49016, 49222, 51052, 31884, 17116, 740, 47241, 50796, 46968, 1680, 8092, 47540 };
-
-class spell_reset_cooldown : public SpellScript
+class spell_reset_cooldown_mortal_strike : public SpellScript
 {
-    PrepareSpellScript(spell_reset_cooldown);
+    PrepareSpellScript(spell_reset_cooldown_mortal_strike);
 
     bool Load() override
     {
@@ -4404,23 +4400,21 @@ class spell_reset_cooldown : public SpellScript
 
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ 12294, 12809, 6343, 12292, 12975, 17962, 20473, 3674, 53301, 53209, 49206, 33831, 48505, 5217, 19574, 3045, 11129, 12472, 12042, 12043, 31661, 60103,
-            51505, 51505, 13877, 51713, 51690, 49016, 49222, 51052, 31884, 17116, 740, 47241, 50796, 46968, 1680, 8092, 47540 });
+        return ValidateSpellInfo({ 12294 });
     }
 
     void HandleScript(SpellEffIndex /*effIndex*/)
     {
         Player* caster = GetCaster()->ToPlayer();
-        for (uint32 spellId : spells)
-            if (caster->HasSpellCooldown(spellId)) {
-                caster->RemoveSpellCooldown(spellId, true);
-                caster->GetGlobalCooldownMgr().CancelGlobalCooldown(sSpellMgr->GetSpellInfo(spellId));
-            }
+        if (caster->HasSpellCooldown(12294)) {
+            caster->RemoveSpellCooldown(12294, true);
+            caster->GetGlobalCooldownMgr().CancelGlobalCooldown(sSpellMgr->GetSpellInfo(12294));
+        }
     }
 
     void Register() override
     {
-        OnEffectHitTarget += SpellEffectFn(spell_reset_cooldown::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
+        OnEffectHitTarget += SpellEffectFn(spell_reset_cooldown_mortal_strike::HandleScript, EFFECT_0, SPELL_EFFECT_DUMMY);
     }
 };
 
@@ -4557,5 +4551,43 @@ void AddSC_generic_spell_scripts()
     RegisterSpellScript(spell_contagion_of_rot);
     RegisterSpellScript(spell_gen_holiday_buff_food);
     RegisterSpellScript(spell_gen_arcane_charge);
-    RegisterSpellScript(spell_reset_cooldown);
+    /*RegisterSpellScript(spell_reset_cooldown_mortal_strike);
+    RegisterSpellScript(spell_reset_cooldown_concussion_Blow);
+    RegisterSpellScript(spell_reset_cooldown_thunder_clap);
+    RegisterSpellScript(spell_reset_cooldown_death_wish);
+    RegisterSpellScript(spell_reset_cooldown_last_stand);
+    RegisterSpellScript(spell_reset_cooldown_conflagrate);
+    RegisterSpellScript(spell_reset_cooldown_holy_shock);
+    RegisterSpellScript(spell_reset_cooldown_black_arrow);
+    RegisterSpellScript(spell_reset_cooldown_explosive_shot);
+    RegisterSpellScript(spell_reset_cooldown_chimera_shot);
+    RegisterSpellScript(spell_reset_cooldown_gargoyle);
+    RegisterSpellScript(spell_reset_cooldown_force_of_nature);
+    RegisterSpellScript(spell_reset_cooldown_starfall);
+    RegisterSpellScript(spell_reset_cooldown_tiger_fury);
+    RegisterSpellScript(spell_reset_cooldown_bestial_wrath);
+    RegisterSpellScript(spell_reset_cooldown_rapid_fire);
+    RegisterSpellScript(spell_reset_cooldown_combustion);
+    RegisterSpellScript(spell_reset_cooldown_icy_veins);
+    RegisterSpellScript(spell_reset_cooldown_arcane_power);
+    RegisterSpellScript(spell_reset_cooldown_presence_of_mind);
+    RegisterSpellScript(spell_reset_cooldown_dragon_breath);
+    RegisterSpellScript(spell_reset_cooldown_lava_lash);
+    RegisterSpellScript(spell_reset_cooldown_lava_burst);
+    RegisterSpellScript(spell_reset_cooldown_element);
+    RegisterSpellScript(spell_reset_cooldown_blade_furry);
+    RegisterSpellScript(spell_reset_cooldown_shadowdance);
+    RegisterSpellScript(spell_reset_cooldown_killing_spree);
+    RegisterSpellScript(spell_reset_cooldown_histerya);
+    RegisterSpellScript(spell_reset_cooldown_unbreakable_armor);
+    RegisterSpellScript(spell_reset_cooldown_anti_magic_zone);
+    RegisterSpellScript(spell_reset_cooldown_avenging_wrath);
+    RegisterSpellScript(spell_reset_cooldown_nature_swift);
+    RegisterSpellScript(spell_reset_cooldown_tranquility);
+    RegisterSpellScript(spell_reset_cooldown_methamorphosis);
+    RegisterSpellScript(spell_reset_cooldown_chaos_bolt);
+    RegisterSpellScript(spell_reset_cooldown_shockwave);
+    RegisterSpellScript(spell_reset_cooldown_whirlwind);
+    RegisterSpellScript(spell_reset_cooldown_mind_blast);
+    RegisterSpellScript(spell_reset_cooldown_penance);*/
 }

@@ -23,6 +23,7 @@
 #include "Player.h"
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
+#include "PerkManager.h"
 
 class Eluna_AllCreatureScript : public AllCreatureScript
 {
@@ -567,6 +568,7 @@ public:
 
     void OnChangeSpec(Player* player, uint8 specId) override
     {
+        PerksManager::OnChangeSpec(player, specId);
         sEluna->OnChangeSpec(player, specId);
     }
 

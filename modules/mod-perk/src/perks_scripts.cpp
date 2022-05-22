@@ -13,11 +13,6 @@ class PS_PerksManager : public PlayerScript
 public:
     PS_PerksManager() : PlayerScript("PS_PerksManager") { }
 
-    void OnChangeSpec(Player* player, uint8 specId)
-    {
-        PerksManager::OnChangeSpec(player, specId);
-    }
-
     void OnLogin(Player* player)
     {
         PerksManager::ApplyAuraPerk(player);

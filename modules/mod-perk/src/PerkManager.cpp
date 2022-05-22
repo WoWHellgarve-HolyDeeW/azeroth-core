@@ -105,6 +105,12 @@ void PerksManager::InsertNewPerksForLevelUp(Player* player, std::string uuid)
     uint8 maxPerks = isPrestigeActive(player) ? 2 : 3;
     uint8 totalPerks = 0;
 
+    if (isPrestigeActive(player)) {
+        PerksManager::PerkPoll perkPoll = GetRandomPrestigeSpell(player);
+        PerksManager::Perk perk = PerksManager::GetPerk(perkPoll.spellId);
+        PerksManager::InsertOnePerk(player, uuid, perk.spellId, perk.isAura, 0);
+    }
+
     for (auto const& possiblePerk : tempPerks) {
         if (totalPerks >= maxPerks)
             break;
@@ -114,12 +120,6 @@ void PerksManager::InsertNewPerksForLevelUp(Player* player, std::string uuid)
             PerksManager::InsertOnePerk(player, uuid, possiblePerk.spellId, possiblePerk.isAura, 0);
             totalPerks++;
         }
-    }
-
-    if (isPrestigeActive(player)) {
-        PerksManager::PerkPoll perkPoll = GetRandomPrestigeSpell(player);
-        PerksManager::Perk perk = PerksManager::GetPerk(perkPoll.spellId);
-        PerksManager::InsertOnePerk(player, uuid, perk.spellId, perk.isAura, 0);
     }
 }
 
@@ -151,16 +151,18 @@ void PerksManager::OnLevelUp(Player* player, uint8 oldLevel)
 
 void PerksManager::SetSelectPerk(Player* player, std::string UUID, uint32 spellId)
 {
-    if (PerksManager::CharacterPerks.find(player->GetGUID().GetCounter()) == PerksManager::CharacterPerks.end())
+    auto guid = player->GetGUID().GetCounter();
+
+    if (PerksManager::CharacterPerks.find(guid) == PerksManager::CharacterPerks.end())
         return;
 
     auto perk = std::find_if(
-        CharacterPerks[player->GetGUID().GetCounter()].begin(),
-        CharacterPerks[player->GetGUID().GetCounter()].end(),
+        CharacterPerks[guid].begin(),
+        CharacterPerks[guid].end(),
         [UUID, spellId](const PerksManager::CharacterPerk& perk)
     { return perk.uuid == UUID && perk.inQueue && perk.spellId == spellId; });
 
-    if (perk != CharacterPerks[player->GetGUID().GetCounter()].end()) {
+    if (perk != CharacterPerks[guid].end()) {
         if (perk->isAura)
             player->AddAura(spellId, player);
         else
@@ -171,17 +173,17 @@ void PerksManager::SetSelectPerk(Player* player, std::string UUID, uint32 spellI
         insStmt->SetData(0, UUID);
         insStmt->SetData(1, spellId);
         trans->Append(insStmt);
-        CharacterDatabase.CommitTransaction(trans);
+        CharacterDatabase.AsyncCommitTransaction(trans);
     }
 
-    for (auto perk = PerksManager::CharacterPerks[player->GetGUID().GetCounter()].begin(); perk != PerksManager::CharacterPerks[player->GetGUID().GetCounter()].end(); ++perk) {
+    for (auto perk = PerksManager::CharacterPerks[guid].begin(); perk != PerksManager::CharacterPerks[guid].end(); ++perk) {
         if (perk->uuid == UUID && perk->inQueue) {
             CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
             CharacterDatabasePreparedStatement* insStmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_CHARACTER_PERK_QUEUE);
             insStmt->SetData(0, UUID);
             insStmt->SetData(1, spellId);
             trans->Append(insStmt);
-            CharacterDatabase.CommitTransaction(trans);
+            CharacterDatabase.AsyncCommitTransaction(trans);
             perk->inQueue = false;
         }
     }
@@ -321,33 +323,34 @@ void PerksManager::ResetCharacter(Player* player)
     player->resetSpells();
     player->ClearQuestStatus();
     CharacterPerks[player->GetGUID().GetCounter()].clear();
-    player->GetSession()->SetLogoutStartTime(5);
+    player->GetSession()->SetLogoutStartTime(10);
 }
 
 
 void PerksManager::SavePollPerks(Player* player)
 {
-    auto it = CharacterPerksPoll.find(player->GetGUID().GetCounter());
+    auto guid = player->GetGUID().GetCounter();
+    auto it = CharacterPerksPoll.find(guid);
     if (it != CharacterPerksPoll.end()) {
-        CharacterPerksPoll[player->GetGUID().GetCounter()].clear();
+        CharacterPerksPoll[guid].clear();
     }
 
-    CharacterDatabase.Query("DELETE FROM character_active_poll_perks WHERE guid = {}", player->GetGUID().GetCounter());
+    CharacterDatabase.Query("DELETE FROM character_active_poll_perks WHERE guid = {}", guid);
     CharacterDatabaseTransaction trans = CharacterDatabase.BeginTransaction();
     CharacterDatabasePreparedStatement* stmt;
 
-    for (auto perk : PerksManager::CharacterPerks[player->GetGUID().GetCounter()]) {
+    for (auto perk : PerksManager::CharacterPerks[guid]) {
         if (perk.isChosen) {
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_CHAR_PERK_POLL);
-            stmt->SetData(0, player->GetGUID().GetCounter());
+            stmt->SetData(0, guid);
             stmt->SetData(1, perk.spellId);
             stmt->SetData(2, perk.specId);
             stmt->SetData(3, false);
             trans->Append(stmt);
-            CharacterPerksPoll[player->GetGUID().GetCounter()].push_back({ perk.spellId, perk.specId, false });
+            CharacterPerksPoll[guid].push_back({ perk.spellId, perk.specId, false });
         }
     }
-    CharacterDatabase.CommitTransaction(trans);
+    CharacterDatabase.AsyncCommitTransaction(trans);
 }
 
 bool PerksManager::isPrestigeActive(Player* player)
@@ -367,7 +370,6 @@ bool PerksManager::isPrestigeActive(Player* player)
 
 bool PerksManager::FoundSimilar(Player* player, std::string uuid, uint32 spellId)
 {
-
     auto perk = std::find_if(
         CharacterPerks[player->GetGUID().GetCounter()].begin(),
         CharacterPerks[player->GetGUID().GetCounter()].end(),
@@ -461,11 +463,9 @@ uint32 PerksManager::GetCountPerk(Player* player, uint32 spellId, uint8 specId)
 
     std::vector<PerksManager::CharacterPerk> lastestPerks = {};
 
-    for (auto perk : PerksManager::CharacterPerks[player->GetGUID().GetCounter()]) {
-        if (perk.specId == specId && perk.spellId == spellId && perk.isChosen) {
+    for (auto perk : PerksManager::CharacterPerks[player->GetGUID().GetCounter()])
+        if (perk.specId == specId && perk.spellId == spellId && perk.isChosen)
             count++;
-        }
-    }
 
     return count;
 }
@@ -485,7 +485,7 @@ void PerksManager::InsertOnePerk(Player* player, std::string uuid, uint32 spellI
     insStmt->SetData(7, 0);
     insStmt->SetData(8, isDefault);
     trans->Append(insStmt);
-    CharacterDatabase.CommitTransaction(trans);
+    CharacterDatabase.AsyncCommitTransaction(trans);
 }
 
 

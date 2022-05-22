@@ -110,11 +110,6 @@ void MythicManager::StartMythic(Player* player, uint8 level)
     MythicManager::encounters[map->GetInstanceId()] = { map, group->GetGUID().GetCounter(), player, isRaid, {}, level};
 }
 
-void MythicManager::StopMythic(Player* player)
-{
-
-}
-
 void MythicManager::AddKillCreditBoss(Player* player, uint32 bossId)
 {
     auto completion = std::find_if(MythicManager::completions.begin(), MythicManager::completions.end(), [&](Completion const& completion)

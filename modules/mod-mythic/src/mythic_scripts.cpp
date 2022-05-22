@@ -14,36 +14,29 @@
 #include "Chat.h"
 #include "ScriptMgr.h"
 
-class npc_mythic : public CreatureScript
+class go_mythic : public GameObjectScript
 {
 public:
-    npc_mythic() : CreatureScript("npc_mythic") { }
+    go_mythic() : GameObjectScript("go_mythic") {}
 
-    struct npc_mythicAI : ScriptedAI
-    {
-        npc_mythicAI(Creature* creature) : ScriptedAI(creature) { };
-    };
-
-    bool OnGossipHello(Player* player, Creature* creature) override
+    bool OnGossipHello(Player* player, GameObject* go) override
     {
         Map* map = player->GetMap();
         std::string mapName = map->GetMapName();
         std::string gossip = "Start " + mapName + " on Mythic difficulty.";
-        AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, gossip, 0, 0);
-        SendGossipMenuFor(player, DEFAULT_GOSSIP_MESSAGE, creature->GetGUID());
+        AddGossipItemFor(player, GOSSIP_ICON_BATTLE, gossip, 0, 0);
+        AddGossipItemFor(player, GOSSIP_ICON_BATTLE, "Close", 0, 1);
+        SendGossipMenuFor(player, DEFAULT_GOSSIP_MESSAGE, go->GetGUID());
         return true;
     }
 
-    bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 action) override
+    bool OnGossipSelect(Player* player, GameObject* go, uint32 sender, uint32 action) override
     {
-        MythicManager::StartMythic(player, 0);
+        if (action == 0) {
+            MythicManager::StartMythic(player, 0);
+        }
         CloseGossipMenuFor(player);
         return true;
-    }
-
-    CreatureAI* GetAI(Creature* creature) const override
-    {
-        return new npc_mythicAI(creature);
     }
 };
 
@@ -114,7 +107,7 @@ public:
             scaledMana = round(((float)baseMana * 2.0f) * scaleWithPlayers);
         }
         else {
-            float multiplier = 2.5f;
+            float multiplier = sConfigMgr->GetOption<float>("HpDungeonMultiplier", 2.8f);
             scaledHealth = round(((float)baseHealth * multiplier));
             scaledMana = round(((float)baseMana * multiplier));
         }
@@ -123,7 +116,6 @@ public:
         creature->SetHealth(scaledHealth);
         creature->SetMaxPower(POWER_MANA, scaledMana);
         creature->SetPower(POWER_MANA, scaledMana);
-
         MythicManager::AddCreatureCalculated(creature->GetMap()->GetInstanceId(), creature->GetGUID().GetCounter());
 ;    }
 };
@@ -178,8 +170,9 @@ public:
 
         MythicManager::Mythic mythic = MythicManager::GetMythicEncounter(attacker->GetMap()->GetInstanceId());
 
-
-        float damageMultiplier = mythic.isRaid ? 1.5f : 3.5f; // default in mythic
+        float raidMultiplier = sConfigMgr->GetOption<float>("RaidMultiplier", 1.5f);
+        float dungeonMultiplier = sConfigMgr->GetOption<float>("DungeonMultiplier", 3.0f);
+        float damageMultiplier = mythic.isRaid ? raidMultiplier : dungeonMultiplier; // default in mythic
 
         Modifier modifier = MythicManager::GetModifier(attacker->GetEntry());
 
@@ -291,7 +284,7 @@ void AddSC_Mythic()
     new GS_Mythic();
     new US_Mythic();
     new WS_Mythic();
-    new npc_mythic();
+    new go_mythic();
     new AutoBalance_UnitScript();
     new AutoBalance_AllCreatureScript();
 }
