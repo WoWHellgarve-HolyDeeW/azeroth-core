@@ -5,6 +5,8 @@
 #include "DBCStores.h"
 #include "SpellMgr.h"
 #include "Bag.h"
+#include "Config.h"
+
 std::map<uint32, CustomEnchant> RandomEnchant::mEnchants = {};
 std::map<ObjectGuid, std::vector<uint32>> RandomEnchant::lastestEnchants = {};
 
@@ -72,17 +74,19 @@ uint32 RandomEnchant::GetRandomEnchant(Player* player, Item* item, bool spellId)
     if (itemTemplate->Class != 2 && itemTemplate->Class != 4)
         return 0;
 
-    for (auto& enchant : mEnchants) {
+    for (auto& enchant : mEnchants)
         if ((enchant.second.allowableClass & player->getClassMask()) != 0)
-        {
           enchants.push_back(spellId ? enchant.first : enchant.second.enchantId);
-        }
-    }
 
     uint32 previousEnchantId = item->GetEnchantmentId(BONUS_ENCHANTMENT_SLOT);
 
     if (previousEnchantId) {
-        enchants.erase(std::remove(enchants.begin(), enchants.end(), previousEnchantId), enchants.end());
+        SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(previousEnchantId);
+
+        if (!pEnchant)
+            return 0;
+
+        enchants.erase(std::remove(enchants.begin(), enchants.end(), pEnchant->spellid[0]), enchants.end());
     }
 
     if (enchants.size() == 0)
@@ -100,10 +104,11 @@ std::vector<uint32> RandomEnchant::GetStats(const ItemTemplate* item)
 
 std::vector<uint32> RandomEnchant::GetPossibleEnchantsToApply(Player* player, uint32 bag, uint32 slotId)
 {
+    uint32 emblemId = sConfigMgr->GetOption<uint32>("DungonEmblemId", 40752);
 
-    /* if (player->GetItemCount(40752) == 0)
+    if (player->GetItemCount(emblemId) == 0)
         return {};
-    player->DestroyItemCount(40752, 1, true);*/
+    player->DestroyItemCount(emblemId, 1, true);
 
     Item* item = GetItemByPosition(player, bag, slotId);
 

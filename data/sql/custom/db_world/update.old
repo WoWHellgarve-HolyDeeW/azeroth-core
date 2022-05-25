@@ -1,0 +1,2 @@
+UPDATE item_template SET bonding = 0 WHERE RequiredLevel > 0 AND bonding < 4
+UPDATE item_template SET AllowableRace = -1

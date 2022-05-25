@@ -13006,6 +13006,9 @@ void Player::SetTitle(CharTitlesEntry const* title, bool lost)
     data << uint32(title->bit_index);
     data << uint32(lost ? 0 : 1);                           // 1 - earned, 0 - lost
     GetSession()->SendPacket(&data);
+
+    uint32 accountId = GetSession()->GetAccountId();
+    CharacterDatabase.Query("INSERT INTO character_accountwide_title (accountId, titleId) VALUES ({}, {})", accountId, title->ID);
 }
 
 uint32 Player::GetRuneBaseCooldown(uint8 index, bool skipGrace)

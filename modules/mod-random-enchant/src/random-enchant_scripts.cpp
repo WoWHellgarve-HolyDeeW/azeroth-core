@@ -13,12 +13,10 @@ public:
 
     RandomEnchantsPlayer() : PlayerScript("RandomEnchantsPlayer") { }
 
-
     void applyingEnchant(Player* player, bool apply, Item* item = nullptr) {
 
-        if (item) {
+        if (item)
             return;
-        }
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
         {

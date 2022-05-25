@@ -79,9 +79,6 @@ public:
         if (!creature->isWorldBoss() && !creature->IsDungeonBoss())
             return;
 
-        if (creature->IsInCombat())
-            return;
-
         if (!MythicManager::IsInMythic(creature->GetMap()->GetInstanceId()))
             return;
 
@@ -107,7 +104,7 @@ public:
             scaledMana = round(((float)baseMana * 2.0f) * scaleWithPlayers);
         }
         else {
-            float multiplier = sConfigMgr->GetOption<float>("HpDungeonMultiplier", 2.8f);
+            float multiplier = sConfigMgr->GetOption<float>("HpDungeonMultiplier", 4.0f);
             scaledHealth = round(((float)baseHealth * multiplier));
             scaledMana = round(((float)baseMana * multiplier));
         }

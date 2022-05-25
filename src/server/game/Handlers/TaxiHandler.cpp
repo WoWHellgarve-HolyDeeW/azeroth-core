@@ -150,7 +150,8 @@ bool WorldSession::SendLearnNewTaxiNode(Creature* unit)
         update << unit->GetGUID();
         update << uint8(1);
         SendPacket(&update);
-
+        uint32 accountId = GetAccountId();
+        CharacterDatabase.Query("INSERT INTO character_accountwide_taxi (accountId, node) VALUES ({}, {})", accountId, curloc);
         return true;
     }
     else
